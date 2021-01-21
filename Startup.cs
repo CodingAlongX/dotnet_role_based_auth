@@ -1,9 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using RoleBasedAuth.Data;
+using RoleBasedAuth.Models.Auth;
 
 namespace RoleBasedAuth
 {
@@ -24,6 +28,13 @@ namespace RoleBasedAuth
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "RoleBasedAuth", Version = "v1"});
             });
+
+            services.AddDbContext<AuthContext>(options =>
+            {
+                options.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
+            });
+            services.AddIdentity<AppUser, IdentityRole>()
+                .AddEntityFrameworkStores<AuthContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
