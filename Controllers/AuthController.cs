@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -28,6 +29,11 @@ namespace RoleBasedAuth.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegistrationDto dto)
         {
+            dto.Roles = new List<string>()
+            {
+                Role.Admin,
+                Role.User
+            };
             var user = new AppUser()
             {
                 UserName = dto.UserName,
@@ -40,6 +46,11 @@ namespace RoleBasedAuth.Controllers
             {
                 var result
                     = await _userManager.CreateAsync(user, dto.Password);
+
+                if (dto.Roles.Count > 0)
+                {
+                    await _userManager.AddToRolesAsync(user, dto.Roles);
+                }
 
                 if (result.Succeeded)
                 {
@@ -64,10 +75,7 @@ namespace RoleBasedAuth.Controllers
             {
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
-                    Subject = new ClaimsIdentity(new Claim[]
-                    {
-                        new Claim("UserId", user.Id)
-                    }),
+                    Subject = new ClaimsIdentity(await GetValidClaims(user)),
                     Expires = DateTime.UtcNow.AddDays(1),
                     SigningCredentials = new SigningCredentials(
                         new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSecret"))),
@@ -84,6 +92,23 @@ namespace RoleBasedAuth.Controllers
             }
 
             return BadRequest(new {message = "Username or password is incorrect"});
+        }
+
+        private async Task<List<Claim>> GetValidClaims(AppUser user)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim("UserId", user.Id),
+            };
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            foreach (var userRole in userRoles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+
+            return claims;
         }
     }
 }
