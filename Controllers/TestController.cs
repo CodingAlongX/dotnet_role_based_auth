@@ -1,5 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using RoleBasedAuth.Attributes;
+using RoleBasedAuth.Models.Auth;
 
 namespace RoleBasedAuth.Controllers
 {
@@ -10,7 +12,7 @@ namespace RoleBasedAuth.Controllers
         //User has to be either Admin or Author
         // [AuthorizeRoles(Role.Admin,Role.Author)]
         // User has to be both Admin and Author
-        // [AuthorizeRoles(Role.Admin)]
+        [AuthorizeRoles(Role.Admin)]
         // [AuthorizeRoles(Role.Author)]
         public async Task<IActionResult> Get()
         {
