@@ -38,7 +38,8 @@ namespace RoleBasedAuth
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
             });
             services.AddIdentity<AppUser, IdentityRole>()
-                .AddEntityFrameworkStores<AuthContext>();
+                .AddEntityFrameworkStores<AuthContext>()
+                .AddRoles<IdentityRole>();
             services.Configure<IdentityOptions>(options =>
             {
                 options.Password.RequireDigit = false;
