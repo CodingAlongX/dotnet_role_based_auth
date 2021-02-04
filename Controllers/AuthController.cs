@@ -4,11 +4,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using RoleBasedAuth.Dtos.Auth;
+using RoleBasedAuth.Dtos.Auth.Response;
 using RoleBasedAuth.Models.Auth;
 
 namespace RoleBasedAuth.Controllers
@@ -27,6 +29,7 @@ namespace RoleBasedAuth.Controllers
         }
 
         [HttpPost("register")]
+        [ProducesResponseType(typeof(AppUser), StatusCodes.Status200OK)]
         public async Task<IActionResult> Register(RegistrationDto dto)
         {
             dto.Roles = new List<string>()
@@ -67,6 +70,7 @@ namespace RoleBasedAuth.Controllers
         }
 
         [HttpPost("login")]
+        [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> Login(LoginDto dto)
         {
             var user = await _userManager.FindByNameAsync(dto.UserName);
@@ -88,7 +92,12 @@ namespace RoleBasedAuth.Controllers
 
                 var token = tokenHandler.WriteToken(securityToken);
 
-                return Ok(new {token});
+                var response = new LoginResponseDto()
+                {
+                    Token = token
+                };
+
+                return Ok(response);
             }
 
             return BadRequest(new {message = "Username or password is incorrect"});
